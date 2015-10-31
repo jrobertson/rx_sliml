@@ -11,9 +11,9 @@ class RxSliml
 
   attr_reader :to_xslt, :to_html
 
-  def initialize(sliml, rx)
+  def initialize(sliml, rx=nil)
 
-    @rx = rx.is_a?(Kvx) ? rx : rx.to_kvx
+    @rx = (rx.is_a?(Kvx) ? rx : rx.to_kvx) if rx
 
     sliml.gsub!(/\{[^\}]+/) do |x|
       x.gsub(/["']?(\S*)\$(\w+)([^"']*)["']?/,'\'\1{\2}\3\'')
@@ -26,7 +26,7 @@ class RxSliml
     @to_xslt = build_xslt
 
     xslt  = Nokogiri::XSLT(@to_xslt)
-    @to_html = xslt.transform(Nokogiri::XML(@rx.to_xml))
+    @to_html = xslt.transform(Nokogiri::XML(@rx.to_xml)) if rx
 
   end
 
