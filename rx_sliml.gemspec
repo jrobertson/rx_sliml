@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'rx_sliml'
-  s.version = '0.1.1'
+  s.version = '0.1.2'
   s.summary = 'Generates an XML stylesheet or HTML string from a RecordX object.'
   s.authors = ['James Robertson']
   s.files = Dir['lib/rx_sliml.rb']

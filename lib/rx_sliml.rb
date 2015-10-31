@@ -11,13 +11,20 @@ class RxSliml
 
   attr_reader :to_xslt, :to_html
 
-  def initialize(sliml, rx=nil)
+  def initialize(sliml=nil, rx=nil, fields: nil)
 
     @rx = (rx.is_a?(Kvx) ? rx : rx.to_kvx) if rx
+    
+    if sliml.nil? and fields.nil? then
+      raise 'RxSliml: please enter a sliml string or an array of fields' 
+    end
+    
+    sliml ||= create_sliml(fields)
+    @sliml = sliml    
 
     sliml.gsub!(/\{[^\}]+/) do |x|
       x.gsub(/["']?(\S*)\$(\w+)([^"']*)["']?/,'\'\1{\2}\3\'')
-    end
+    end    
     
     xml = LineTree.new(sliml).to_xml declaration: false, pretty: true
     
@@ -27,7 +34,13 @@ class RxSliml
 
     xslt  = Nokogiri::XSLT(@to_xslt)
     @to_html = xslt.transform(Nokogiri::XML(@rx.to_xml)) if rx
-
+    
+  end
+  
+  def to_sliml()
+    
+    @sliml
+    
   end
 
 
@@ -88,6 +101,14 @@ class RxSliml
         gsub('xsl_','xsl:')
 
     xml2.sub('<rec_template/>', @recxsl)
+  end
+
+  def create_sliml(fields)
+    
+    lines = ['dl']
+    lines << fields.map {|field| "  dt %s:\n  dd $%s\n" % ([field.to_s]*2) }
+    lines.join("\n")
+    
   end
 
 end
