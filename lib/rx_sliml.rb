@@ -7,16 +7,33 @@ require 'rexle-builder'
 require 'nokogiri'
 
 
+class RxSlimlException < Exception 
+end
+
 class RxSliml
 
   attr_reader :to_xslt, :to_html
 
-  def initialize(sliml=nil, rx=nil, fields: nil)
+  def initialize(sliml=nil, obj=nil, fields: nil)
 
-    @rx = (rx.is_a?(Kvx) ? rx : rx.to_kvx) if rx
+    # assumes the obj is either a Kvx object or responds to :to_kvx
+    #
+    @rx = if obj then
+    
+      if obj.is_a? Kvx then
+        obj
+      elsif obj.respond_to? :to_kvx
+        obj.to_kvx
+      elsif obj.respond_to? :to_xml
+        obj
+      else
+        raise RxSlimlException, 'reference object not recognised'
+      end
+    end
     
     if sliml.nil? and fields.nil? then
-      raise 'RxSliml: please enter a sliml string or an array of fields' 
+      raise RxSlimlException, 'RxSliml: please enter a sliml string or ' + 
+          'an array of fields' 
     end
     
     sliml ||= create_sliml(fields)
@@ -33,7 +50,7 @@ class RxSliml
     @to_xslt = build_xslt
 
     xslt  = Nokogiri::XSLT(@to_xslt)
-    @to_html = xslt.transform(Nokogiri::XML(@rx.to_xml)) if rx
+    @to_html = xslt.transform(Nokogiri::XML(@rx.to_xml)) if @rx
     
   end
   
